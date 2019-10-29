@@ -5,6 +5,10 @@ import { Switch, Route, Link } from 'react-router-dom';
 import oc from 'open-color';
 import Main from './Main';
 import About from './About';
+import Signup from './Signup';
+import SignupComplete from './SignupComplete';
+import Login from './Login';
+import Mypage from './Mypage';
 import iconMenu from './image/menu.png' 
 import iconModalClose from './image/iconModalClose.png' 
 
@@ -15,9 +19,11 @@ class App extends Component {
     email: '',
   }
 
+  /*
   handleAlertEvent = (category, action, label) => {
     window.alert(`Event - category: ${category}, action: ${action}, label: ${label}`);
   }
+  */
 
   handleChange = (e) => {
     const email = e.target.value;
@@ -34,13 +40,14 @@ class App extends Component {
     );
   }
 
+  
   handleClick = (type) => {
     if (type === 'subscribe') {
       this.setState({
           isModalVisible: true,
         }
       );
-      this.handleAlertEvent('button', 'click', 'subscribe-begin');
+      //this.handleAlertEvent('button', 'click', 'subscribe-begin');
       window.ga('send', 'event', 'button', 'click', 'subscribe-begin');
     } else {
       this.setState({
@@ -48,11 +55,11 @@ class App extends Component {
           email: '',
         }
       );
-      this.handleAlertEvent('button', 'click', 'subscribe-complete');
+      //this.handleAlertEvent('button', 'click', 'subscribe-complete');
       window.ga('send', 'event', 'button', 'click', 'subscribe-complete');
     }
   }
-
+  
   render() {
     const { isModalVisible } = this.state;
     return (
@@ -77,6 +84,7 @@ class App extends Component {
           <div className="left"><Link className="link" to='/'>David James Gandy</Link></div>
           <div className="center">BRITISH MALE MODEL AGENCY</div>
           <div className="right">
+            <Link className="link" to='/login'><button className="login">Log In</button></Link>
             <img src={iconMenu} alt={iconMenu} height="20px"/>
           </div>
         </Header>
@@ -86,6 +94,10 @@ class App extends Component {
               <Route exact path="/" component={Main} />
               <Route path="/campaign" component={Main} />
               <Route exact path="/about" component={About} />
+              <Route exact path="/signup" component={Signup} />
+              <Route path="/signupComplete/:email" component={SignupComplete} />
+              <Route exact path="/login" component={Signup} />
+              <Route exact path="/mypage" component={Mypage} />
             </Switch>
           </div>
         </Content>
@@ -276,6 +288,25 @@ const Header = styled.div`
     text-align: center;
     width: 10%;
     padding-left: 0px;
+
+    .login {
+      width: 70px;
+      height: 30px;
+      margin: 0 auto;
+      margin-right: 30px;
+      cursor: pointer;
+      outline: none;
+      border-radius: 5px;
+      background: ${oc.gray[7]};
+      border: none;
+      color: white;
+
+
+      font-size: 12px;
+      letter-spacing: 1.5px;
+    }
+
+    }
 
   }
 `;

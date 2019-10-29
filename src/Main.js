@@ -25,6 +25,8 @@ componentWillUnmount() {
   window.removeEventListener("scroll", this.handleScroll);
 }
 
+
+
 handleScroll = () => {
   const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
   if (scrollTop + 500 >= this.secondItem.offsetTop) {
@@ -53,36 +55,42 @@ handleScroll = () => {
     if (isScrollCompelete === true) {
       return;
     }
-    this.handleAlertEvent('scroll', 'scroll-down', 'main-page-scroll-complete');
-    window.ga('send', 'event', 'scroll', 'scroll-down', 'main-page-scroll-complete');
+    
+    //this.handleAlertEvent('scroll', 'scroll-down', 'main-page-scroll-complete');
+    //window.ga('send', 'event', 'scroll', 'scroll-down', 'main-page-scroll-complete');
     this.setState({
       isScrollCompelete: true
     });
+    
   }
 };
 
+
+
   handleClickAbout = (type) => {
     if (type === 'video') {
-      this.handleAlertEvent('video', 'play', 'GQ Taiwan');
+      //this.handleAlertEvent('video', 'play', 'GQ Taiwan');
       window.ga('send', 'event', 'video', 'play', 'GQ Taiwan');
     } else if (type === 'download') {
-      this.handleAlertEvent('button', 'click', 'download');
+      //this.handleAlertEvent('button', 'click', 'download');
       window.ga('send', 'event', 'button', 'click', 'download');
     } else {
       this.props.history.push('/about');
-      this.handleAlertEvent('button', 'click', type);
+      //this.handleAlertEvent('button', 'click', type);
       window.ga('send', 'event', 'button', 'click', 'view more');
     }
   }
 
   handleClickImg = () => {
-    window.alert('Thank you!');
+    //window.alert('Thank you!');
   }
+
 
   handleAlertEvent = (category, action, label) => {
-    window.alert(`Event - category: ${category}, action: ${action}, label: ${label}`);
+    //window.alert(`Event - category: ${category}, action: ${action}, label: ${label}`);
   }
 
+  
   render() {
     const { isSecondItemVisible, isThridItemVisible, isLowerItemVisible, isTooltipVisible } = this.state;
     return (
