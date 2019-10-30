@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 import oc from 'open-color';
-import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
 import { withRouter, Link } from 'react-router-dom';
 import dashboard from './image/dashboard.png'
-//import * as jwt_decode from 'jwt-decode';
+import * as firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/firestore";
 
-class Signup extends Component {
+class FbSignup extends Component {
 
   state = {
     email: "",
@@ -16,11 +17,27 @@ class Signup extends Component {
     errMessage: "",
   }
 
-  componentWillMount = () => {
+  componentDidMount = () => {
     const { path } = this.props.match;
     this.setState({
       path: path
     });
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB7rbog2GaI6I8ZaUlRf4hamnMDhaa36A",
+      authDomain: "ga-sign-test.firebaseapp.com",
+      databaseURL: "https://ga-sign-test.firebaseio.com",
+      projectId: "ga-sign-test",
+      storageBucket: "ga-sign-test.appspot.com",
+      messagingSenderId: "172490420203",
+      appId: "1:172490420203:web:24edf8c951ccd11fd0f3ae",
+      measurementId: "G-1XW8Y7LN3H"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    
   }
 
   handleChagnePath = (type) => {
@@ -55,6 +72,13 @@ class Signup extends Component {
       return;
     }
     
+    if(password.length < 6) {
+      this.setState({
+        errMessage: "Password must be more than 6 characters"
+      });
+      return;
+    }
+    
     if(password !== passwordConfirm) {
       this.setState({
         errMessage: "Password and confirm password don't match"
@@ -62,7 +86,7 @@ class Signup extends Component {
       return;
     }
 
-    this.cogintoSignup(email, password);
+    this.fbSignup(email, password);
   }
 
   handleLoginClick = () => {
@@ -77,106 +101,40 @@ class Signup extends Component {
       return;
     } 
 
-    this.cogintoLogin(email, password);
+    this.fbLogin(email, password);
 
   }
 
-  cogintoSignup = (email, password) => {
+  fbSignup = (email, password) => {
+    const that = this;
+    
+    firebase.auth().createUserWithEmailAndPassword(email, password).catch(function(error) {
+      const errorMessage = error.message;
+      that.setState({
+        errMessage: errorMessage
+      })
+    });
 
-    const { history } = this.props;
+    this.props.history.push(`/fbsignupComplete/${email}`);
+  }
+
+  fbLogin = (email, password) => { 
+    const { handleFbLogIn } = this.props;
     const that = this;
 
-    const poolData = {
-      UserPoolId : 'ap-northeast-2_QBB8o4gc7', // Your user pool id here
-      ClientId : '1ftngbgjnmn0e1bhtkkr0dr1gl' // Your client id here
-    };
-       
-    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-       /*
-       var attributeList = [];
-       var dataEmail = {
-               Name : 'email',
-               Value : 'thelastnig@gmail.com'
-           };
-       
-       var dataPassword = {
-          Name : 'password',
-               Value : '1234567'
-           };
-       
-       var attributeEmail = new CognitoUserAttribute(dataEmail);
-       var attributePassword = new CognitoUserAttribute(dataPassword);
-       
-       attributeList.push(attributeEmail);
-       attributeList.push(attributePassword);
-       */
-
-    userPool.signUp(email, password, null, null, function(err, result){   //username: bellayang, userpwd: Bellayang1
-      if (err) {
-        console.log(err.message);
-        that.setState({
-          errMessage: err.message
-        })
-        return;
-      }
-      const cognitoUser = result.user;
-      const userEmail = cognitoUser.getUsername()
-      console.log('user account is ' + userEmail);
-      history.push(`/signupComplete/${userEmail}`);
+    firebase.auth().signInWithEmailAndPassword(email, password).catch(function(error) {
+      const errorMessage = error.message;
+      that.setState({
+        errMessage: errorMessage
+      })
     });
-  }
 
-  cogintoLogin = (email, password) => { 
-    const { history, handleLogIn } = this.props;
-    const that = this;    
+    const currentUser = firebase.auth().currentUser;
 
-    const poolData = {
-      UserPoolId : 'ap-northeast-2_QBB8o4gc7', // Your user pool id here
-      ClientId : '1ftngbgjnmn0e1bhtkkr0dr1gl' // Your client id here
-    };
-       
-    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-  
-    var userData = { 
-      Username : email,
-      Pool : userPool
-    };
-
-    const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
-
-    var authenticationData = {
-      Username : email,
-      Password : password,
-    };
-
-    var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
-
-    cognitoUser.authenticateUser(authenticationDetails, {
-      onSuccess: function (result) {
-          const accessToken = result.getAccessToken().getJwtToken();
-          const idToken = result.idToken.jwtToken;
-
-          console.log('authentication successful!');
-          console.log('accessToken*----------------------');
-          console.log(accessToken);
-          console.log('idToken*----------------------');
-          console.log(idToken);
-          handleLogIn(cognitoUser);
-          history.push(`/`);
-      },
-
-      onFailure: function(err) {
-          console.log(err.message);
-          that.setState({
-            errMessage: err.message
-          });
-      },
-
-      mfaRequired: function(codeDeliveryDetails) {
-          var verificationCode = prompt('Please input verification code' ,'');
-          cognitoUser.sendMFACode(verificationCode, this);
-      }
-    });
+    if (currentUser) {
+      handleFbLogIn(currentUser);
+      this.props.history.push('/');
+    } 
   }
 
   handleFogotPassword = () => {
@@ -197,49 +155,21 @@ class Signup extends Component {
       });
       return;
     } 
-
-    const poolData = {
-      UserPoolId : 'ap-northeast-2_QBB8o4gc7', 
-      ClientId : '1ftngbgjnmn0e1bhtkkr0dr1gl' 
-    };
-
-    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+    const auth = firebase.auth();
     
-    const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-      Username: email,
-      Pool: userPool
-    });
+    auth.sendPasswordResetEmail(email).then(function() {
+      alert("Please check your email");
 
-    cognitoUser.forgotPassword({
-    onSuccess: function (result) {
-        console.log('call result: ' + result);
-    },
-    onFailure: function(err) {
+    }).catch(function(error) {
       that.setState({
-        errMessage: err.message
+        errMessage: error.message
       })
-    },
-    inputVerificationCode() {
-        var verificationCode = prompt('Check your email and input verification code ' ,'');
-        var newPassword = prompt('Enter new password ' ,'');
-        cognitoUser.confirmPassword(verificationCode, newPassword, {
-          onFailure: (err) => {
-            that.setState({
-              errMessage: err.message
-            })
-          },
-          onSuccess: (res) =>  {
-            alert("New password has been successfully registered. Please log in using new password");
-          },
-      });
-      }
     });
-
   }
 
   render() {
     const { email, password, passwordConfirm, path, errMessage } =  this.state;
-    const login = (path ===  "/login" ? true : false);
+    const login = (path ===  "/fblogin" ? true : false);
     const err = (errMessage === "" ? false : true);
     return (
       <Wrapper isLogin={login}>
@@ -249,8 +179,8 @@ class Signup extends Component {
               <img src={dashboard} alt={dashboard} width="25px"/>
             </div>
             <div className="upperRight">
-              <button className="tapBtn login" onClick={() => this.handleChagnePath('/login')}>Log In</button>
-              <button className="tapBtn signup" onClick={() => this.handleChagnePath('/signup')}>Sign Up</button>
+              <button className="tapBtn login" onClick={() => this.handleChagnePath('/fblogin')}>Log In</button>
+              <button className="tapBtn signup" onClick={() => this.handleChagnePath('/fbsignup')}>Sign Up</button>
             </div>
           </div>
           <div className="outerLower">
@@ -314,7 +244,7 @@ class Signup extends Component {
   }
 }
 
-export default withRouter(Signup);
+export default withRouter(FbSignup);
 
 
 const Wrapper = styled.div`

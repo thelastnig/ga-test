@@ -7,12 +7,18 @@ import Main from './Main';
 import About from './About';
 import Signup from './Signup';
 import SignupComplete from './SignupComplete';
-import Login from './Login';
 import Mypage from './Mypage';
 import iconMenu from './image/menu.png' 
 import iconModalClose from './image/iconModalClose.png' 
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js'; 
 import AWS from 'aws-sdk';
+
+import * as firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/firestore";
+import FbSignup from './FbSignup';
+import FbSignupComplete from './FbSignupComplete';
+import FbMypage from './FbMypage';
 
 class App extends Component {
 
@@ -21,6 +27,13 @@ class App extends Component {
     email: '',
     isLogin: false,
     cognitoUser: null,
+
+
+    // Firebase
+    isFb: true,
+    fbEmail: '',
+    fbIsLogin: false,
+    fbCurrentUser: null,
   }
 
   /*
@@ -30,9 +43,9 @@ class App extends Component {
   */
 
   componentDidMount() {
-
     const that = this;
 
+    // coginto
     const data = {
       UserPoolId : 'ap-northeast-2_QBB8o4gc7', // Your user pool id here
       ClientId : '1ftngbgjnmn0e1bhtkkr0dr1gl' // Your client id here
@@ -64,6 +77,33 @@ class App extends Component {
             });
         });
     }
+
+
+    // firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB7rbog2GaI6I8ZaUlRf4hamnMDhaa36A",
+      authDomain: "ga-sign-test.firebaseapp.com",
+      databaseURL: "https://ga-sign-test.firebaseio.com",
+      projectId: "ga-sign-test",
+      storageBucket: "ga-sign-test.appspot.com",
+      messagingSenderId: "172490420203",
+      appId: "1:172490420203:web:24edf8c951ccd11fd0f3ae",
+      measurementId: "G-1XW8Y7LN3H"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    const currentUser = firebase.auth().currentUser;
+
+    if (currentUser) {
+      this.setState({
+        fbCurrentUser: currentUser,
+        fbIsLogin: true,
+      })
+    } 
+    
   }
 
   handleChange = (e) => {
@@ -118,11 +158,30 @@ class App extends Component {
       window.location.reload();
     }
   }
+
+  // Firebase
+  handleFbLogIn = (fbCurrentUser) => {
+    this.setState({
+      fbIsLogin: true,
+      fbCurrentUser: fbCurrentUser
+    });
+  }
+
+  handleFbLogOut = () => {
+    firebase.auth().signOut();
+    this.setState({
+      fbEmail: '',
+      fbIsLogin: false,
+      fbCurrentUser: null,
+    }, function(){
+      window.location.reload();
+    });
+  }
   
   render() {
-    const { isModalVisible } = this.state;
+    const { isModalVisible, isFb, fbIsLogin } = this.state;
     const isLogin = (this.state.isLogin ? true : false);
-    const { handleLogIn } = this;
+    const { handleLogIn, handleFbLogIn } = this;
     return (
       <BrowserRouter>
         <ModalWrapper isModalVisible={isModalVisible}/>
@@ -146,14 +205,33 @@ class App extends Component {
           <div className="center">BRITISH MALE MODEL AGENCY</div>
           <div className="right">
             {
-              isLogin
-              ?
+              isFb
+              ? 
               <Fragment>
-                <button className="login" onClick={this.handleLogOut}>Log Out</button>
-                <Link className="link" to='/mypage'><button className="login mypage">My Page</button></Link>
+                {
+                  fbIsLogin
+                  ?
+                  <Fragment>
+                    <button className="login" onClick={this.handleFbLogOut}>Log Out</button>
+                    <Link className="link" to='/fbmypage'><button className="login mypage">My Page</button></Link>
+                  </Fragment>
+                  :
+                  <Link className="link" to='/fblogin'><button className="login">Log In</button></Link>
+                }
               </Fragment>
               :
-              <Link className="link" to='/login'><button className="login">Log In</button></Link>
+              <Fragment>
+                {
+                  isLogin
+                  ?
+                  <Fragment>
+                    <button className="login" onClick={this.handleLogOut}>Log Out</button>
+                    <Link className="link" to='/mypage'><button className="login mypage">My Page</button></Link>
+                  </Fragment>
+                  :
+                  <Link className="link" to='/login'><button className="login">Log In</button></Link>
+                }
+              </Fragment>
             }
             <img src={iconMenu} alt={iconMenu} height="20px"/>
           </div>
@@ -168,6 +246,12 @@ class App extends Component {
               <Route path="/signupComplete/:email" component={SignupComplete} />
               <Route exact path="/login" render={() => <Signup handleLogIn={handleLogIn} />}/>
               <Route exact path="/mypage" render={() => <Mypage isLogin={this.state.isLogin} cognitoUser={this.state.cognitoUser} />}/>
+
+
+              <Route exact path="/fbsignup" component={FbSignup} />
+              <Route path="/fbsignupComplete/:email" component={FbSignupComplete} />
+              <Route exact path="/fblogin" render={() => <FbSignup handleFbLogIn={handleFbLogIn} />}/>
+              <Route exact path="/fbmypage" render={() => <FbMypage fbIsLogin={this.state.fbIsLogin} fbCurrentUser={this.state.fbCurrentUser} />}/>
             </Switch>
           </div>
         </Content>
