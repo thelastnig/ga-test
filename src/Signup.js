@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import oc from 'open-color';
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
 import { withRouter, Link } from 'react-router-dom';
+import dashboard from './image/dashboard.png'
 //import * as jwt_decode from 'jwt-decode';
 
 class Signup extends Component {
@@ -36,22 +37,48 @@ class Signup extends Component {
   }
 
   handleSignupClick = () => {
-    const { email, password } = this.state;
+    const { email, password, passwordConfirm } = this.state;
 
-    this.cogintoSignup(email, password);
+    const regExp =  /^([0-9a-zA-Z_.-]+)@([0-9a-zA-Z_-]+)(\.[0-9a-zA-Z_-]+){1,2}$/;
+    
+    if (email.match(regExp) === null) {
+      this.setState({
+        errMessage: "Invalid email"
+      });
+      return;
+    }
+    
+    if(password !== passwordConfirm) {
+      this.setState({
+        errMessage: "Password and confirm password don't match"
+      });
+      return;
+    }
+
+    this.cogintoSignup(email, password, passwordConfirm);
   }
 
   handleLoginClick = () => {
     const { email, password } = this.state;
 
+    const regExp =  /^([0-9a-zA-Z_.-]+)@([0-9a-zA-Z_-]+)(\.[0-9a-zA-Z_-]+){1,2}$/;
+    
+    if (email.match(regExp) === null) {
+      this.setState({
+        errMessage: "Invalid email"
+      });
+      return;
+    } 
+
     this.cogintoLogin(email, password);
 
   }
 
-  cogintoSignup = (email, password) => {
+  cogintoSignup = (email, password, passwordConfirm) => {
 
     const { history } = this.props;
     const that = this;
+
     const poolData = {
       UserPoolId : 'ap-northeast-2_QBB8o4gc7', // Your user pool id here
       ClientId : '1ftngbgjnmn0e1bhtkkr0dr1gl' // Your client id here
@@ -93,7 +120,7 @@ class Signup extends Component {
   }
 
   cogintoLogin = (email, password) => { 
-    const { history } = this.props;
+    const { history, handleLogIn } = this.props;
     const that = this;    
 
     const poolData = {
@@ -127,8 +154,8 @@ class Signup extends Component {
           console.log(accessToken);
           console.log('idToken*----------------------');
           console.log(idToken);
-          history.push(`/mypage`);
-
+          handleLogIn(cognitoUser);
+          history.push(`/`);
       },
 
       onFailure: function(err) {
@@ -143,6 +170,63 @@ class Signup extends Component {
           cognitoUser.sendMFACode(verificationCode, this);
       }
     });
+  }
+
+  handleFogotPassword = () => {
+
+    const { email } = this.state;
+    const that = this;
+
+    if (email === '') {
+      alert("Warning: Enter your account.");
+      return;
+    }
+
+    const regExp =  /^([0-9a-zA-Z_.-]+)@([0-9a-zA-Z_-]+)(\.[0-9a-zA-Z_-]+){1,2}$/;
+    
+    if (email.match(regExp) === null) {
+      this.setState({
+        errMessage: "Invalid email"
+      });
+      return;
+    } 
+
+    const poolData = {
+      UserPoolId : 'ap-northeast-2_QBB8o4gc7', 
+      ClientId : '1ftngbgjnmn0e1bhtkkr0dr1gl' 
+    };
+
+    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+    
+    const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+      Username: email,
+      Pool: userPool
+    });
+
+    cognitoUser.forgotPassword({
+    onSuccess: function (result) {
+        console.log('call result: ' + result);
+    },
+    onFailure: function(err) {
+      that.setState({
+        errMessage: err.message
+      })
+    },
+    inputVerificationCode() {
+        var verificationCode = prompt('Check your email and input verification code ' ,'');
+        var newPassword = prompt('Enter new password ' ,'');
+        cognitoUser.confirmPassword(verificationCode, newPassword, {
+          onFailure: (err) => {
+            that.setState({
+              errMessage: err.message
+            })
+          },
+          onSuccess: (res) =>  {
+            alert("New password has been successfully registered. Please log in using new password");
+          },
+      });
+      }
+    });
 
   }
 
@@ -151,15 +235,15 @@ class Signup extends Component {
     const login = (path ===  "/login" ? true : false);
     const err = (errMessage === "" ? false : true);
     return (
-      <Wrapper>
+      <Wrapper isLogin={login}>
         <div className="outerWrapper">
           <div className="outerUpper">
             <div className="upperLeft">
-
+              <img src={dashboard} alt={dashboard} width="25px"/>
             </div>
             <div className="upperRight">
-              <button onClick={() => this.handleChagnePath('/login')}>Log In</button>
-              <button onClick={() => this.handleChagnePath('/signup')}>Sign Up</button>
+              <button className="tapBtn login" onClick={() => this.handleChagnePath('/login')}>Log In</button>
+              <button className="tapBtn signup" onClick={() => this.handleChagnePath('/signup')}>Sign Up</button>
             </div>
           </div>
           <div className="outerLower">
@@ -182,7 +266,8 @@ class Signup extends Component {
               </div>
               {
                 login 
-                ? null
+                ? 
+                null
                 :
                 <div className="item">
                   <div className="label">Password Confirm</div>
@@ -197,6 +282,13 @@ class Signup extends Component {
                 <div className="info">{errMessage}</div>
                 :
                 <div className="info"></div>
+              }
+              {
+                login
+                ? 
+                <div className="additionalOption"><button className="fotgotBtn" onClick={this.handleFogotPassword}>Forgot password?</button></div>
+                :
+                <div className="additionalOption"></div>
               }
               <div className="button">
                 {
@@ -261,8 +353,33 @@ const Wrapper = styled.div`
 
       .upperRight {
 
-      }
+        .tapBtn {
+          width: 70px;
+          outline: none;
+          border: none;
+          background: #306060;
+          color: white;
+          font-size: 15px;
+          cursor: pointer;
 
+          &.signup {
+            width: 95px;
+            border-bottom: 1px solid white;
+          }
+
+          ${props => props.isLogin && `
+
+            &.signup {
+              border-bottom: none
+            }
+
+            &.login {
+              border-bottom: 1px solid white;
+            }
+          
+          `}
+        }
+      }
     }
   }
 
@@ -331,6 +448,22 @@ const Wrapper = styled.div`
       height: 30px;
       font-size: 12px;
       color: ${oc.pink[8]};
+    }
+
+    .additionalOption {
+      width: 100%;
+      height: 25px;
+      text-align: right;
+
+      .fotgotBtn {
+        border: none;
+        outline: none;
+        color: ${oc.yellow[7]};
+        font-size: 14px;
+        font-weight: 600;
+        background: transparent;
+        cursor: pointer;
+      }
 
     }
   }

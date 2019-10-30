@@ -9,63 +9,59 @@ import gandy4 from './image/gandy4.jpg'
 class Main extends Component {
 
   state = {
-  isSecondItemVisible: false,
-  isThridItemVisible: false,
-  isLowerItemVisible: false,
-  isScrollCompelete: false,
-  isTooltipVisible: false,
-}
-
-componentDidMount() {
-  window.scrollTo(0, 0);
-  window.addEventListener("scroll", this.handleScroll);
-}
-
-componentWillUnmount() {
-  window.removeEventListener("scroll", this.handleScroll);
-}
-
-
-
-handleScroll = () => {
-  const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
-  if (scrollTop + 500 >= this.secondItem.offsetTop) {
-    this.setState({
-      isSecondItemVisible: true
-    });
-  } 
-  if (scrollTop + 500 >= this.thirdItem.offsetTop) {
-    this.setState({
-      isThridItemVisible: true
-    });
+    isSecondItemVisible: false,
+    isThridItemVisible: false,
+    isLowerItemVisible: false,
+    isScrollCompelete: false,
+    isTooltipVisible: false,
   }
-  if (scrollTop + 500 >= this.lowerItem.offsetTop) {
-    this.setState({
-      isLowerItemVisible: true,
-    });
 
+  componentDidMount() {
+    window.scrollTo(0, 0);
+    window.addEventListener("scroll", this.handleScroll);
   }
-  if (scrollTop + 500 < this.lowerItem.offsetTop) {
-    this.setState({
-      isLowerItemVisible: false,
-    });
+
+  componentWillUnmount() {
+    window.removeEventListener("scroll", this.handleScroll);
   }
-  if (scrollTop + 374 >= this.thirdItem.offsetTop) {
-    const { isScrollCompelete } = this.state;
-    if (isScrollCompelete === true) {
-      return;
+
+  handleScroll = () => {
+    const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+    if (scrollTop + 500 >= this.secondItem.offsetTop) {
+      this.setState({
+        isSecondItemVisible: true
+      });
+    } 
+    if (scrollTop + 500 >= this.thirdItem.offsetTop) {
+      this.setState({
+        isThridItemVisible: true
+      });
     }
-    
-    //this.handleAlertEvent('scroll', 'scroll-down', 'main-page-scroll-complete');
-    //window.ga('send', 'event', 'scroll', 'scroll-down', 'main-page-scroll-complete');
-    this.setState({
-      isScrollCompelete: true
-    });
-    
-  }
-};
+    if (scrollTop + 500 >= this.lowerItem.offsetTop) {
+      this.setState({
+        isLowerItemVisible: true,
+      });
 
-
+    }
+    if (scrollTop + 500 < this.lowerItem.offsetTop) {
+      this.setState({
+        isLowerItemVisible: false,
+      });
+    }
+    if (scrollTop + 374 >= this.thirdItem.offsetTop) {
+      const { isScrollCompelete } = this.state;
+      if (isScrollCompelete === true) {
+        return;
+      }
+      
+      //this.handleAlertEvent('scroll', 'scroll-down', 'main-page-scroll-complete');
+      //window.ga('send', 'event', 'scroll', 'scroll-down', 'main-page-scroll-complete');
+      this.setState({
+        isScrollCompelete: true
+      });
+      
+    }
+  };
 
   handleClickAbout = (type) => {
     if (type === 'video') {
@@ -89,7 +85,6 @@ handleScroll = () => {
   handleAlertEvent = (category, action, label) => {
     //window.alert(`Event - category: ${category}, action: ${action}, label: ${label}`);
   }
-
   
   render() {
     const { isSecondItemVisible, isThridItemVisible, isLowerItemVisible, isTooltipVisible } = this.state;

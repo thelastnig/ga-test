@@ -1,68 +1,137 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 import oc from 'open-color';
+import { withRouter } from 'react-router-dom';
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js'; 
 import AWS from 'aws-sdk';
-import { withRouter } from 'react-router-dom';
 
 class MyPage extends Component {
 
   state = {
-    cognitoUser: null
+    email: '',
+    password: '',
+    newPassword: '',
+    newPasswordConfirm: '',
+    cognitoUser: null,
   }
 
-  componentWillMount = () => {
-
+  /*
+  componentWillReceiveProps = (nextProps) => {
+    const { cognitoUser } = this.state;
     const that = this;
 
-    const data = {
-      UserPoolId : 'ap-northeast-2_QBB8o4gc7', // Your user pool id here
-      ClientId : '1ftngbgjnmn0e1bhtkkr0dr1gl' // Your client id here
-    };
-
-    const userPool = new AmazonCognitoIdentity.CognitoUserPool(data);
-    const cognitoUser = userPool.getCurrentUser();
-
-    if (cognitoUser != null) {
-        cognitoUser.getSession(function(err, session) {
-            if (err) {
-              console.log(err);
-              return;
-            }
-            console.log('session validity: ' + session.isValid());
-            console.log(session.getIdToken().getJwtToken());
-            that.setState({
-              cognitoUser: cognitoUser
-            });
-
-            AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-              IdentityPoolId : '...',
-              Logins : {
-                  'cognito-idp.<region>.amazonaws.com/<YOUR_USER_POOL_ID>' : session.getIdToken().getJwtToken()
-              }
-            });
+    if (this.state.cognitoUser !== nextProps.cognitoUser) {
+  
+      cognitoUser.getUserAttributes(function(err, result) {
+        if (err) {
+            alert(err);
+            return;
+        }
+        that.setState({
+          cognitoUser: cognitoUser,
+          email: result[2].getValue(),
         });
+      });
     }
   }
+  */
 
-  handleLogout = () => {
-    const { cognitoUser } = this.state;
-    if (cognitoUser != null) {
-      cognitoUser.signOut();
+  componentWillMount = () => {
+    const { cognitoUser } = this.props;
+    const that = this;
+
+    if (cognitoUser !== null) {
+    
+      cognitoUser.getUserAttributes(function(err, result) {
+        if (err) {
+            alert(err);
+            return;
+        }
+        that.setState({
+          cognitoUser: cognitoUser,
+          email: result[2].getValue(),
+        });
+      });
+
+    } else {
       this.props.history.push('/');
     }
   }
 
+
+  handlePasswordChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value
+    });
+  }
+
+  handleSubmit = () => {
+    const { password, newPassword, newPasswordConfirm } = this.state;
+    const { cognitoUser } = this.props;
+    const that = this;
+    
+    if ( password === "" ) {
+      alert("Enter your existing password!");
+      return;
+    }
+    
+    if ( newPassword === "" ) {
+      alert("Enter your new password!");
+      return;
+    }
+    
+    if(newPassword !== newPasswordConfirm) {
+      alert("New password and confirm password don't match");
+      return;
+    }
+
+    if (cognitoUser === null) {
+      alert("Warning: You are not logged in.");
+      this.props.history.push('/');
+      return;
+    }
+
+    cognitoUser.changePassword(password, newPassword, function(err, result) {
+      if (err) {
+          alert(err.message);
+          return;
+      }
+      console.log('call result: ' + result);
+      alert("Password has been successfully changed!");
+      that.props.history.push('/');
+    });
+  }
+
   render() {
+    const {  email, password, newPassword, newPasswordConfirm } =  this.state;
     return (
       <Wrapper>
         <div className="innerWrapper">
           <div className="notice">
             <div className="title">My Page</div>
-            <div className="content">Please check the below account for singup completion</div>
+            <div className="content email">{email}</div>
+            <div className="content pwd">Change Password</div>
+          </div>
+          <div className="item">
+            <div className="label">Password</div>
+            <div className="input">
+              <input className="textInput" type="password" name="password" value={password} onChange={this.handlePasswordChange}></input>
+            </div>
+          </div>
+          <div className="item">
+            <div className="label">New Password</div>
+            <div className="input">
+              <input className="textInput" type="password" name="newPassword" value={newPassword} onChange={this.handlePasswordChange}></input>
+            </div>
+          </div>
+          <div className="item">
+            <div className="label">New Password Confirm</div>
+            <div className="input">
+              <input className="textInput" type="password" name="newPasswordConfirm" value={newPasswordConfirm} onChange={this.handlePasswordChange}></input>
+            </div>
           </div>
           <div className="buttonArea">
-            <div className="buttonWrapper"><button className="logout" onClick={this.handleLogout}>Log out</button></div>
+            <div className="buttonWrapper"><button className="submit" onClick={this.handleSubmit}>Submit</button></div>
           </div>
         </div>
       </Wrapper>
@@ -101,25 +170,53 @@ const Wrapper = styled.div`
     }
 
     .content {
-      font-size: 16px;
-      color: ${oc.gray[8]};
-
       margin: 0 auto;
-      text-align: center;
-      padding: 25px 0;
+
+      &.pwd{
+        padding-top: 25px;
+        padding-bottom: 10px;
+        font-size: 14px;
+        font-weight: bold;
+        width: 80%;
+        text-align: left;
+        color: ${oc.yellow[7]};
+      }
+
+      &.email{
+        @import url('https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap');
+        font-family: Roboto Slab, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        color: black;
+        text-align: center;
+        padding: 25px 0;
+      }
+    }
+    
+    .item {
+      width: 80%;
+      margin: 20px auto;
     }
 
-    .email {
+    .label {
+      margin-bottom: 5px;
+      font-size: 13px;
+      font-weight: bold;
+      color: ${oc.gray[8]};
+    }
+
+    .textInput {
+      width: 100%;
+      height: 30px;
+      border: none;
+      outline: none;
+      border-bottom : 1px solid ${oc.gray[5]};
+
       @import url('https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap');
       font-family: Roboto Slab, sans-serif;
-      font-size: 20px;
-      font-weight: bold;
+      font-size: 15px;
       color: black;
-      
-      margin: 0 auto;
-      text-align: center;
-      padding: 20px 0;
-
+      font-weight: bold;
     }
 
     .buttonArea{
@@ -144,14 +241,6 @@ const Wrapper = styled.div`
         color: white;
         font-size: 14px;
         letter-spacing: 1.5px;
-
-        &.home {
-          background: white;
-          border: 1px solid #306060;
-          color: #306060;
-
-        }
-  
       }
     }
   }

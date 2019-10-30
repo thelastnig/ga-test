@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import { Switch, Route, Link } from 'react-router-dom';
@@ -11,12 +11,16 @@ import Login from './Login';
 import Mypage from './Mypage';
 import iconMenu from './image/menu.png' 
 import iconModalClose from './image/iconModalClose.png' 
+import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js'; 
+import AWS from 'aws-sdk';
 
 class App extends Component {
 
   state = {
     isModalVisible: false,
     email: '',
+    isLogin: false,
+    cognitoUser: null,
   }
 
   /*
@@ -24,6 +28,43 @@ class App extends Component {
     window.alert(`Event - category: ${category}, action: ${action}, label: ${label}`);
   }
   */
+
+  componentDidMount() {
+
+    const that = this;
+
+    const data = {
+      UserPoolId : 'ap-northeast-2_QBB8o4gc7', // Your user pool id here
+      ClientId : '1ftngbgjnmn0e1bhtkkr0dr1gl' // Your client id here
+    };
+
+    const userPool = new AmazonCognitoIdentity.CognitoUserPool(data);
+    const cognitoUser = userPool.getCurrentUser();
+
+    if (cognitoUser != null) {
+        cognitoUser.getSession(function(err, session) {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            console.log('session validity: ' + session.isValid());
+            console.log(session.getIdToken().getJwtToken());
+            console.log('cognitoUser--------------------------');
+            console.log(cognitoUser);
+            that.setState({
+              isLogin: true,
+              cognitoUser: cognitoUser
+            });
+
+            AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+              IdentityPoolId : '...',
+              Logins : {
+                  'cognito-idp.<region>.amazonaws.com/<YOUR_USER_POOL_ID>' : session.getIdToken().getJwtToken()
+              }
+            });
+        });
+    }
+  }
 
   handleChange = (e) => {
     const email = e.target.value;
@@ -40,7 +81,6 @@ class App extends Component {
     );
   }
 
-  
   handleClick = (type) => {
     if (type === 'subscribe') {
       this.setState({
@@ -59,9 +99,30 @@ class App extends Component {
       window.ga('send', 'event', 'button', 'click', 'subscribe-complete');
     }
   }
+
+  handleLogIn = (cognitoUser) => {
+    this.setState({
+      isLogin: true,
+      cognitoUser: cognitoUser
+    });
+  }
+
+  handleLogOut = () => {
+    const { cognitoUser } = this.state;
+    if (cognitoUser != null) {
+      cognitoUser.signOut();
+      this.setState({
+        isLogin: false,
+        cognitoUser: null
+      });
+      window.location.reload();
+    }
+  }
   
   render() {
     const { isModalVisible } = this.state;
+    const isLogin = (this.state.isLogin ? true : false);
+    const { handleLogIn } = this;
     return (
       <BrowserRouter>
         <ModalWrapper isModalVisible={isModalVisible}/>
@@ -84,7 +145,16 @@ class App extends Component {
           <div className="left"><Link className="link" to='/'>David James Gandy</Link></div>
           <div className="center">BRITISH MALE MODEL AGENCY</div>
           <div className="right">
-            <Link className="link" to='/login'><button className="login">Log In</button></Link>
+            {
+              isLogin
+              ?
+              <Fragment>
+                <button className="login" onClick={this.handleLogOut}>Log Out</button>
+                <Link className="link" to='/mypage'><button className="login mypage">My Page</button></Link>
+              </Fragment>
+              :
+              <Link className="link" to='/login'><button className="login">Log In</button></Link>
+            }
             <img src={iconMenu} alt={iconMenu} height="20px"/>
           </div>
         </Header>
@@ -96,8 +166,8 @@ class App extends Component {
               <Route exact path="/about" component={About} />
               <Route exact path="/signup" component={Signup} />
               <Route path="/signupComplete/:email" component={SignupComplete} />
-              <Route exact path="/login" component={Signup} />
-              <Route exact path="/mypage" component={Mypage} />
+              <Route exact path="/login" render={() => <Signup handleLogIn={handleLogIn} />}/>
+              <Route exact path="/mypage" render={() => <Mypage isLogin={this.state.isLogin} cognitoUser={this.state.cognitoUser} />}/>
             </Switch>
           </div>
         </Content>
@@ -276,7 +346,7 @@ const Header = styled.div`
   }
 
   .center {
-    width: 60%;
+    width: 50%;
     text-align: center;
 
     font-size: 12px;
@@ -286,24 +356,33 @@ const Header = styled.div`
 
   .right {
     text-align: center;
-    width: 10%;
+    width: 20%;
     padding-left: 0px;
 
     .login {
       width: 70px;
       height: 30px;
       margin: 0 auto;
-      margin-right: 30px;
+      margin-right: 20px;
       cursor: pointer;
       outline: none;
       border-radius: 5px;
-      background: ${oc.gray[7]};
+      background: ${oc.gray[6]};
       border: none;
       color: white;
 
 
       font-size: 12px;
       letter-spacing: 1.5px;
+
+      &.mypage {
+        width: 75px;
+        background: transparent;
+        border: 1px solid ${oc.gray[6]};
+        color: ${oc.gray[6]};
+        font-weight: 600;
+
+      }
     }
 
     }
