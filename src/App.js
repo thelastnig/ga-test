@@ -24,13 +24,15 @@ class App extends Component {
 
   state = {
     isModalVisible: false,
+    
+    // cognito
     email: '',
     isLogin: false,
     cognitoUser: null,
 
 
     // Firebase
-    isFb: true,
+    isFb: false,
     fbEmail: '',
     fbIsLogin: false,
     fbCurrentUser: null,

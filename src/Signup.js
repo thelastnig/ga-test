@@ -1,19 +1,27 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import styled from 'styled-components';
 import oc from 'open-color';
 import * as AmazonCognitoIdentity from 'amazon-cognito-identity-js';
+import AWS from 'aws-sdk';
 import { withRouter, Link } from 'react-router-dom';
 import dashboard from './image/dashboard.png'
 //import * as jwt_decode from 'jwt-decode';
 
+import { GoogleLogin } from 'react-google-login';
+
 class Signup extends Component {
 
   state = {
+    // cognito with email
     email: "",
     password: "",
     passwordConfirm: "",
     path: "",
     errMessage: "",
+
+    // cognito with google
+    gmail: '',
+    provider: 'google',
   }
 
   componentWillMount = () => {
@@ -78,7 +86,6 @@ class Signup extends Component {
     } 
 
     this.cogintoLogin(email, password);
-
   }
 
   cogintoSignup = (email, password) => {
@@ -234,8 +241,42 @@ class Signup extends Component {
       });
       }
     });
-
   }
+
+  handleloginWithGoogleSuccess = (res) => {
+    console.log("success");
+    const idToken = res.Zi.id_token;
+
+    AWS.config = {
+      region: 'ap-northeast-2' ,
+      IdentityPoolId: 'ap-northeast-2:458e68c4-23ec-49a9-b22d-a135e0534f54',
+      UserPoolId: 'ap-northeast-2_w2esx2eLN',
+      ClientId: '57ol93v8ae64m6lcsduutblrdd',
+    };
+
+
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+       IdentityPoolId: 'ap-northeast-2:458e68c4-23ec-49a9-b22d-a135e0534f54',
+       Logins: {
+          'accounts.google.com': idToken
+       }
+    });
+    AWS.config.credentials.get(err => {
+        if (err) {
+          console.log(err);
+        }
+    });
+    
+  }
+
+  handleloginWithGoogleError = (err) => {
+    this.setState({
+      errMessage: err.message
+    })
+  }
+
+
+  
 
   render() {
     const { email, password, passwordConfirm, path, errMessage } =  this.state;
@@ -301,9 +342,20 @@ class Signup extends Component {
                 {
                   login 
                   ?
-                  <button className="submit" onClick={this.handleLoginClick}>Log In</button>
+                  <Fragment>
+                    <button className="submit" onClick={this.handleLoginClick}>Log In</button>
+                    <GoogleLogin
+                      clientId="792142707592-3vbqu7n9i520npjk3jsfoj6m832s4nat.apps.googleusercontent.com"
+                      buttonText="with Google"
+                      onSuccess={this.handleloginWithGoogleSuccess}
+                      onFailure={this.handleloginWithGoogleError}
+                    />
+                  </Fragment>
                   :
-                  <button className="submit" onClick={this.handleSignupClick}>Sign Up</button>
+                  <Fragment>
+                    <button className="submit" onClick={this.handleSignupClick}>Sign Up</button>
+                    <button className="submit" onClick={this.handleLoginClick}>Sign Up with Google</button>
+                  </Fragment>
                 }
               </div>
             </div>
