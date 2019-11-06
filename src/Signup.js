@@ -344,7 +344,7 @@ class Signup extends Component {
                   ?
                   <Fragment>
                     <button className="submit" onClick={this.handleLoginClick}>Log In</button>
-                    <GoogleLogin
+                    <GoogleLogin className="google"
                       clientId="792142707592-3vbqu7n9i520npjk3jsfoj6m832s4nat.apps.googleusercontent.com"
                       buttonText="with Google"
                       onSuccess={this.handleloginWithGoogleSuccess}
@@ -500,6 +500,15 @@ const Wrapper = styled.div`
       color: white;
       font-size: 14px;
       letter-spacing: 1.5px;
+    }
+
+    .google {
+      width: 100%;
+      height: 45px;
+      cursor: pointer;
+      margin-top: 15px;
+      outline: none;
+
     }
 
     .info {
