@@ -39,7 +39,7 @@ class Article extends Component {
   }
 
   handleClickSearch = () => {
-    
+    this.getAllwords();
   }
 
   getAllwords = () => {
@@ -47,7 +47,8 @@ class Article extends Component {
     axios.get(apiTarget)
     .then(response => {
       this.setState({
-        words: response.data.words
+        words: response.data.words,
+        articles: response.data.articles,
       })
     })
     .catch(error => {
