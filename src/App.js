@@ -20,6 +20,10 @@ import FbSignup from './FbSignup';
 import FbSignupComplete from './FbSignupComplete';
 import FbMypage from './FbMypage';
 
+
+// R 연동
+import Article from './Article'
+
 class App extends Component {
 
   state = {
@@ -254,6 +258,8 @@ class App extends Component {
               <Route path="/fbsignupComplete/:email" component={FbSignupComplete} />
               <Route exact path="/fblogin" render={() => <FbSignup handleFbLogIn={handleFbLogIn} />}/>
               <Route exact path="/fbmypage" render={() => <FbMypage fbIsLogin={this.state.fbIsLogin} fbCurrentUser={this.state.fbCurrentUser} />}/>
+
+              <Route path="/article" component={Article} />
             </Switch>
           </div>
         </Content>
