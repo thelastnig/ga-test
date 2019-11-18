@@ -2,12 +2,14 @@ import React, { Component } from 'react';
 import styled from 'styled-components';
 import oc from 'open-color';
 import axios from 'axios';
+import { LakeFormation } from 'aws-sdk';
 
 class Article extends Component {
   state = {
     keyword: '',
     newArticle: '',
     articles: [],
+    filteredArticles: [],
     words: [],
     searchResult: null,
     isSearchResultVisible: false,
@@ -93,7 +95,20 @@ class Article extends Component {
   }
 
   handleClickSearch = () => {
+    const { keyword, articles } = this.state;
+    if (keyword.length < 2) {
+      alert("Search keyword munt be more than 2 characters!")
+      return;
+    }
 
+    let filteredArticles = articles.filter(function(article) {
+      return article.content.indexOf(keyword) !== -1
+    })
+
+    this.setState({
+      filteredArticles: filteredArticles,
+      isSearchResultVisible: false
+    })
   }
 
   getAllwords = () => {
@@ -103,6 +118,7 @@ class Article extends Component {
       this.setState({
         words: response.data.words,
         articles: response.data.articles,
+        filteredArticles: response.data.articles,
       })
     })
     .catch(error => {
@@ -111,10 +127,10 @@ class Article extends Component {
   }
 
   render() {
-    const { keyword, newArticle, articles, searchResult, isSearchResultVisible } = this.state;
+    const { keyword, newArticle, filteredArticles, searchResult, isSearchResultVisible } = this.state;
 
     // 게시물 출력 작업
-    const articleList = articles.map(
+    const articleList = filteredArticles.map(
       (article, index) => {
         const content = article.content;
         const date = article.date.substring(4, 16);
