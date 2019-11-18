@@ -73,7 +73,7 @@ class Article extends Component {
     const { newArticle } = this.state;
 
     if (newArticle === null || newArticle === '') {
-      alert("Write new question!");
+      alert("Write new article.");
       return;
     }
 
@@ -85,7 +85,8 @@ class Article extends Component {
       console.log(response);
       this.getAllwords();
       this.setState({
-        newArticle: ''
+        newArticle: '',
+        isSearch: false,
       });
     
     })
@@ -103,7 +104,7 @@ class Article extends Component {
     }
 
     let filteredArticles = articles.filter(function(article) {
-      return article.content.indexOf(keyword) !== -1
+      return article.content.toLowerCase().indexOf(keyword) !== -1
     });
 
     this.setState({
@@ -119,7 +120,7 @@ class Article extends Component {
     const { articles } = this.state;
 
     let filteredArticles = articles.filter(function(article) {
-      return article.content.indexOf(keyword) !== -1
+      return article.content.toLowerCase().indexOf(keyword) !== -1
     });
 
     this.setState({
