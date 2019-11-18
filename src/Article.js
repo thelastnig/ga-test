@@ -7,12 +7,14 @@ import { LakeFormation } from 'aws-sdk';
 class Article extends Component {
   state = {
     keyword: '',
+    searchedKeyword: '',
     newArticle: '',
     articles: [],
     filteredArticles: [],
     words: [],
     searchResult: null,
     isSearchResultVisible: false,
+    isSearch: false,
   }
 
   componentWillMount() {
@@ -52,7 +54,7 @@ class Article extends Component {
       (word, index) => {
         return (
           <div className="searchResult" key={index}>
-            <div className="word">{word}</div>
+            <button className="word" onClick={() => this.handleClickKeyword(word)} >{word}</button>
           </div>
         )
     });
@@ -71,7 +73,7 @@ class Article extends Component {
     const { newArticle } = this.state;
 
     if (newArticle === null || newArticle === '') {
-      alert("Write new question");
+      alert("Write new question!");
       return;
     }
 
@@ -80,7 +82,6 @@ class Article extends Component {
         article: newArticle
     })
     .then(response => {
-      console.log("----------------------");
       console.log(response);
       this.getAllwords();
       this.setState({
@@ -97,18 +98,37 @@ class Article extends Component {
   handleClickSearch = () => {
     const { keyword, articles } = this.state;
     if (keyword.length < 2) {
-      alert("Search keyword munt be more than 2 characters!")
+      alert("Search keyword munt be more than 2 characters!");
       return;
     }
 
     let filteredArticles = articles.filter(function(article) {
       return article.content.indexOf(keyword) !== -1
-    })
+    });
 
     this.setState({
       filteredArticles: filteredArticles,
-      isSearchResultVisible: false
-    })
+      keyword: '',
+      searchedKeyword: keyword,
+      isSearchResultVisible: false,
+      isSearch: true,
+    });
+  }
+
+  handleClickKeyword = (keyword) => {
+    const { articles } = this.state;
+
+    let filteredArticles = articles.filter(function(article) {
+      return article.content.indexOf(keyword) !== -1
+    });
+
+    this.setState({
+      filteredArticles: filteredArticles,
+      keyword: '',
+      searchedKeyword: keyword,
+      isSearchResultVisible: false,
+      isSearch: true,
+    });
   }
 
   getAllwords = () => {
@@ -127,7 +147,7 @@ class Article extends Component {
   }
 
   render() {
-    const { keyword, newArticle, filteredArticles, searchResult, isSearchResultVisible } = this.state;
+    const { keyword, searchedKeyword, newArticle, filteredArticles, searchResult, isSearchResultVisible, isSearch } = this.state;
 
     // 게시물 출력 작업
     const articleList = filteredArticles.map(
@@ -142,14 +162,19 @@ class Article extends Component {
         )
     });
     return (
-    <Wrapper isSearchResultVisible={isSearchResultVisible}>
+    <Wrapper isSearchResultVisible={isSearchResultVisible} isSearch={isSearch}>
       <div className="mainText">Article List</div>
       <div className="searchBarWrapper" >
         <input type="text" className="searchBar" name="keyword" value={keyword} onChange={this.hadleSearchChange}/>
         <button className="search" onClick={this.handleClickSearch} placeholder="Search">Search</button>
       </div>
-      <div className="searchResultWrapper">{searchResult}</div>
-      <div className="articleListWrapper">{articleList}</div>
+      <div className="searchResultWrapper">
+        {searchResult}
+      </div>
+      <div className="articleListWrapper">
+        <div className="searchInfo">{searchedKeyword} - search result: {filteredArticles.length}</div>
+        {articleList}
+      </div>
       <div className="boardWrapper">
         <div className="add">+ Add your article</div>
         <input type="text" className="articleInput" name="newArticle" value={newArticle} onChange={this.handleChange} />
@@ -236,12 +261,26 @@ const Wrapper = styled.div`
     `}  
 
     .searchResult {
-      padding-top: 8px;
-      padding-bottom: 8px;
+    }
+
+    .word {
+      background: white;
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      height: 35px;
+
+      text-align: left;
+
+      &:hover {
+        cursor: pointer;
+        background: ${oc.gray[3]};
+      }
     }
   }
 
-  button {
+  .search, .submit {
     border: none;
     border-radius: 5px;
     outline: none;
@@ -252,11 +291,14 @@ const Wrapper = styled.div`
     background: #306060;
     margin-left: 20px;
     cursor: pointer;
+  }
 
-    &.search {
-      background: ${oc.gray[6]};
-    }
+  .search {
+    background: ${oc.gray[6]};
+  }
 
+  .submit {
+    background: #306060;
   }
 
   .articleListWrapper {
@@ -288,6 +330,17 @@ const Wrapper = styled.div`
       font-family: Roboto Slab, sans-serif;
       color: ${oc.gray[9]};
     }
+  }
+
+  .searchInfo {
+    display: none;
+    color: ${oc.gray[7]};
+    margin-left: 15px;
+    margin-bottom: 30px;
+
+    ${props => props.isSearch && `
+      display: block;
+    `}  
   }
 `;
 
