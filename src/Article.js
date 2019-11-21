@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import styled from 'styled-components';
 import oc from 'open-color';
 import axios from 'axios';
-import { LakeFormation } from 'aws-sdk';
 
 class Article extends Component {
   state = {

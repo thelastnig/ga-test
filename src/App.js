@@ -22,7 +22,10 @@ import FbMypage from './FbMypage';
 
 
 // R 연동
-import Article from './Article'
+import Article from './Article';
+
+// 커뮤니티 API 테스트
+import Best from './Best';
 
 class App extends Component {
 
@@ -260,6 +263,8 @@ class App extends Component {
               <Route exact path="/fbmypage" render={() => <FbMypage fbIsLogin={this.state.fbIsLogin} fbCurrentUser={this.state.fbCurrentUser} />}/>
 
               <Route path="/article" component={Article} />
+
+              <Route path="/best" component={Best} />
             </Switch>
           </div>
         </Content>
