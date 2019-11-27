@@ -11,6 +11,7 @@ class Best extends Component {
     bestIlbe: [],
     bestInstiz: [],
     bestRuliweb: [],
+    bestClien: [],
   }
 
   componentWillMount() {
@@ -20,6 +21,7 @@ class Best extends Component {
     this.getBestIlbes();
     this.getBestInstizs();
     this.getBestRuliwebs();
+    this.getBestCliens();
   }
 
   getKeywords = () => {
@@ -100,9 +102,22 @@ class Best extends Component {
     });
   }
 
+  getBestCliens = () => {
+    const apiTarget = 'http://localhost:3001/best/clien';
+    axios.get(apiTarget)
+    .then(response => {
+      this.setState({
+        bestClien: response.data.data
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
+
   render() {
   
-    const { keywords, bestCook, bestBullpen, bestIlbe, bestInstiz, bestRuliweb } = this.state;
+    const { keywords, bestCook, bestBullpen, bestIlbe, bestInstiz, bestRuliweb, bestClien } = this.state;
 
     // 네이버 실시간 검색어 출력 작업
     const naverKeywords = keywords.map(
@@ -168,6 +183,7 @@ class Best extends Component {
     // Ruliweb 게시물 출력 작업
     const ruliwebArticles = bestRuliweb.map(
       (article, index) => {
+        if (index > 11) return;
         const link =  article.link;
         const title = article.title
         return (
@@ -177,6 +193,20 @@ class Best extends Component {
         )
     });
 
+    // Clien 게시물 출력 작업
+    const clienArticles = bestClien.map(
+      (article, index) => {
+        if (index > 11) return;
+        const link =  "https://www.clien.net" + article.link;
+        const title = article.title
+        return (
+          <div className="clienArticles" key={index}>
+            <a href={link}>{title}</a>
+          </div>
+        )
+    });
+
+    
     return (
       <Wrapper>
         <div className="listWrapper">
@@ -203,6 +233,10 @@ class Best extends Component {
           <div className="section">
             <p>Ruliweb</p>
             {ruliwebArticles}
+          </div>
+          <div className="section">
+            <p>Clien</p>
+            {clienArticles}
           </div>
         </div>
       </Wrapper>

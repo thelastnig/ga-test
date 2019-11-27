@@ -24,6 +24,9 @@ import FbMypage from './FbMypage';
 // R 연동
 import Article from './Article';
 
+// 동의어 테스트
+import Synonym from './Synonym';
+
 // 커뮤니티 API 테스트
 import Best from './Best';
 
@@ -263,6 +266,8 @@ class App extends Component {
               <Route exact path="/fbmypage" render={() => <FbMypage fbIsLogin={this.state.fbIsLogin} fbCurrentUser={this.state.fbCurrentUser} />}/>
 
               <Route path="/article" component={Article} />
+
+              <Route path="/synonym" component={Synonym} />
 
               <Route path="/best" component={Best} />
             </Switch>
