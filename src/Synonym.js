@@ -10,7 +10,7 @@ class Synonym extends Component {
     keyword: "",
     swords: [],
     autokeyword: "",
-    topics: ["cannabis", "business", "medicine", "travel", "sport", "food", "law", "shop", "product", "job"],
+    topics: ["cannabis", "business", "medicine", "travel", "sport", "food", "law", "shopping", "product", "job"],
     topicWithSynonyms: [],
     searchResult: null,
     isSearchResultVisible: false,

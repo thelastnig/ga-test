@@ -12,6 +12,7 @@ class Best extends Component {
     bestInstiz: [],
     bestRuliweb: [],
     bestClien: [],
+    bestNamu: [],
   }
 
   componentWillMount() {
@@ -22,6 +23,7 @@ class Best extends Component {
     this.getBestInstizs();
     this.getBestRuliwebs();
     this.getBestCliens();
+    this.getBestNamus();
   }
 
   getKeywords = () => {
@@ -115,9 +117,22 @@ class Best extends Component {
     });
   }
 
+  getBestNamus = () => {
+    const apiTarget = 'http://localhost:3001/best/namu';
+    axios.get(apiTarget)
+    .then(response => {
+      this.setState({
+        bestNamu: response.data.data
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
+
   render() {
   
-    const { keywords, bestCook, bestBullpen, bestIlbe, bestInstiz, bestRuliweb, bestClien } = this.state;
+    const { keywords, bestCook, bestBullpen, bestIlbe, bestInstiz, bestRuliweb, bestClien, bestNamu } = this.state;
 
     // 네이버 실시간 검색어 출력 작업
     const naverKeywords = keywords.map(
@@ -206,6 +221,18 @@ class Best extends Component {
         )
     });
 
+    // Namuwiki 게시물 출력 작업
+    const namuArticles = bestNamu.map(
+      (article, index) => {
+        const link =  "https://namu.live" + article.link;
+        const title = article.title
+        return (
+          <div className="namuArticles" key={index}>
+            <a href={link}>{title}</a>
+          </div>
+        )
+    });
+
     
     return (
       <Wrapper>
@@ -237,6 +264,10 @@ class Best extends Component {
           <div className="section">
             <p>Clien</p>
             {clienArticles}
+          </div>
+          <div className="section">
+            <p>Namu Wiki</p>
+            {namuArticles}
           </div>
         </div>
       </Wrapper>
