@@ -76,7 +76,8 @@ class Article extends Component {
       return;
     }
 
-    const apiTarget = 'http://localhost:3001/rscript';
+    //const apiTarget = 'http://localhost:3001/rscript';
+    const apiTarget = 'http://localhost:3001/noun';
     axios.post(apiTarget, {
         article: newArticle
     })
@@ -132,7 +133,8 @@ class Article extends Component {
   }
 
   getAllwords = () => {
-    const apiTarget = 'http://localhost:3001/rscript';
+    //const apiTarget = 'http://localhost:3001/rscript';
+    const apiTarget = 'http://localhost:3001/noun';
     axios.get(apiTarget)
     .then(response => {
       this.setState({
