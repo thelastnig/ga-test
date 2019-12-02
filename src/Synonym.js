@@ -3,12 +3,17 @@ import styled from 'styled-components';
 import oc from 'open-color';
 //import synonyms from 'synonyms';
 import tcom from 'thesaurus-com';
+import axios from 'axios';
 
 
 class Synonym extends Component {
   state = {
     keyword: "",
     swords: [],
+    apiKeyword: "",
+    apiWords: [],
+    sApiKeyword: "",
+    sApiWords: [],
     autokeyword: "",
     topics: ["cannabis", "business", "medicine", "travel", "sport", "food", "law", "shopping", "product", "job"],
     topicWithSynonyms: [],
@@ -34,9 +39,91 @@ class Synonym extends Component {
     })
   }
 
+  getAPISynonyms = () => {
+    const { apiKeyword } = this.state;
+    if (apiKeyword === null || apiKeyword === "") {
+      alert("단어를 입력해 주세요.");
+      return;
+    }
+    
+    axios.get('http://thesaurus.altervista.org/thesaurus/v1', {
+      params: {
+        word: apiKeyword,
+        language: 'en_US',
+        output: 'json',
+        key: 'bHbXkl95E1r3311DbMGt'
+      }
+    })
+    .then(response => {
+      const rawData = response.data["response"];    
+      
+      var apiWords = [];
+      rawData.map((list) => {
+        const item = list.list.synonyms
+        const words = item.split('|');
+        words.map((word) => {
+          const index = word.indexOf('(');
+          if (index != -1) {
+            const trimedWord = word.substring(0, index);
+            apiWords.push(trimedWord);
+          } else {
+            apiWords.push(word);
+          }
+        })
+      });
+
+      this.setState({
+        apiWords: apiWords
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
+
+  getSAPISynonyms = () => {
+    const { sApiKeyword } = this.state;
+    if (sApiKeyword === null || sApiKeyword === "") {
+      alert("단어를 입력해 주세요.");
+      return;
+    }
+    
+    axios.get('http://www.stands4.com/services/v2/syno.php', {
+      params: {
+        uid: '7421',
+        tokenid: 'Ip16osSgvqIL0mhi',
+        word: sApiKeyword,
+        format: 'json',
+      }
+    })
+    .then(response => {
+      const rawData = response.data["result"];    
+      
+      var sApiWords = new Set();
+
+      // const lists = rawData.filter((list, i) => {
+      //   return list.partofspeech === 'noun';
+      // })
+
+      rawData.map((list) => {
+        const items = list.synonyms.split(',');
+        items.map((item) => {
+          sApiWords.add(item);
+        })
+      });
+
+      this.setState({
+        sApiWords: [...sApiWords]
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
+
   handleChange = (e) => {
     this.setState({
-      keyword: e.target.value,
+      [e.target.name]: e.target.value,
     })
   }
 
@@ -89,7 +176,6 @@ class Synonym extends Component {
       searchResult: searchResult,
       isSearchResultVisible: !isArrayEmpty
     });
-
   }
 
   getTopics = () => {
@@ -108,9 +194,21 @@ class Synonym extends Component {
   }
 
   render() {
-    const { keyword, swords, autokeyword, searchResult, isSearchResultVisible} = this.state;
+    const { keyword, swords, apiKeyword, apiWords, sApiKeyword, sApiWords, autokeyword, searchResult, isSearchResultVisible} = this.state;
   
     const synonymWords = swords.map((word, i) => {
+      return (
+        <div className="word" key={i}>{word}</div>
+      );
+    });
+
+    const apiSynonymWords = apiWords.map((word, i) => {
+      return (
+        <div className="word" key={i}>{word}</div>
+      );
+    });
+
+    const sApiSynonymWords = sApiWords.map((word, i) => {
       return (
         <div className="word" key={i}>{word}</div>
       );
@@ -120,7 +218,7 @@ class Synonym extends Component {
       <Wrapper isSearchResultVisible={isSearchResultVisible}>
         <div className="innerWrapper">
           <div className="section">
-            <div className="textArea">Find Synonyms</div>
+            <div className="textArea">Find Synonyms (thesaurus.com Node library)</div>
             <div className="searchArea">
               <div className="searchLeft"><input type="text" className="inputText" name="keyword" value={keyword} onChange={this.handleChange}/></div>
               <div className="searchRight"><button className="btnSearch" onClick={this.getSynonyms}>Search</button></div>
@@ -129,6 +227,28 @@ class Synonym extends Component {
               <div className="wordWrapper">{synonymWords}</div>
             </div>
           </div>
+
+          <div className="section">
+            <div className="textArea">Find Synonyms by API (thesaurus API)</div>
+            <div className="searchArea auto">
+              <div className="searchLeft"><input type="text" className="inputText" name="apiKeyword" value={apiKeyword} onChange={this.handleChange}/></div>
+              <div className="searchRight"><button className="btnSearch" onClick={this.getAPISynonyms}>Search</button></div>
+            </div>
+            <div className="resultArea">
+              <div className="wordWrapper">{apiSynonymWords}</div>
+            </div>
+          </div>
+
+        <div className="section">
+          <div className="textArea">Find Synonyms by API (Synonyms API)</div>
+          <div className="searchArea auto">
+            <div className="searchLeft"><input type="text" className="inputText" name="sApiKeyword" value={sApiKeyword} onChange={this.handleChange}/></div>
+            <div className="searchRight"><button className="btnSearch" onClick={this.getSAPISynonyms}>Search</button></div>
+          </div>
+          <div className="resultArea">
+            <div className="wordWrapper">{sApiSynonymWords}</div>
+          </div>
+        </div>
 
           <div className="section">
             <div className="textArea">Autocomplete by synonym</div>
