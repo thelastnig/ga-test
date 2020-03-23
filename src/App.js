@@ -30,6 +30,9 @@ import Synonym from './Synonym';
 // 커뮤니티 API 테스트
 import Best from './Best';
 
+// Topic Modeling for Article
+import TopicModel from './TopicModel'
+
 class App extends Component {
 
   state = {
@@ -270,6 +273,8 @@ class App extends Component {
               <Route path="/synonym" component={Synonym} />
 
               <Route path="/best" component={Best} />
+
+              <Route path="/topicmodel" component={TopicModel} />
             </Switch>
           </div>
         </Content>
